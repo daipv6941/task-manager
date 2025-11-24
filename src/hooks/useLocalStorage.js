@@ -1,0 +1,29 @@
+import { useState, useCallback } from 'react';
+
+/**
+ * Custom hook để quản lý localStorage
+ * Tự động sync state với localStorage
+ */
+export const useLocalStorage = (key, initialValue) => {
+  const [storedValue, setStoredValue] = useState(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      console.error(`Error loading ${key} from localStorage:`, error);
+      return initialValue;
+    }
+  });
+
+  const setValue = useCallback((value) => {
+    try {
+      const valueToStore = value instanceof Function ? value(storedValue) : value;
+      setStoredValue(valueToStore);
+      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+    } catch (error) {
+      console.error(`Error saving ${key} to localStorage:`, error);
+    }
+  }, [key, storedValue]);
+
+  return [storedValue, setValue];
+};
